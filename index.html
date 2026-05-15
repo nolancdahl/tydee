@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tydee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #14161b;
+  --bg-soft: #1a1d24;
+  --bg-card: #262a35;
+  --bg-card-hover: #2d3240;
+  --ink: #ecedf0;
+  --ink-soft: #9aa0ac;
+  --ink-faded: #5d6470;
+  --line: #2a2e38;
+  --line-strong: #3a3f4b;
+  --azul: #4a8bff;
+  --azul-dark: #3a72d9;
+  --azul-soft: rgba(74, 139, 255, 0.12);
+  --warning: #e87764;
+  --warning-yellow: #e8c34a;
+  --good: #6eb88c;
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 18px rgba(0,0,0,0.25);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,0.35), 0 14px 36px rgba(0,0,0,0.3);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { background: var(--bg); }
+
+body {
+  font-family: "Sora", system-ui, sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+  line-height: 1.5;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ===== Banner ===== */
+.banner {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  overflow: hidden;
+  margin: 0;
+}
+
+.banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 82%;
+  display: block;
+  filter: brightness(0.72) saturate(0.85);
+}
+
+/* Gradient fade from image to page background */
+.banner-fade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom,
+      rgba(20, 22, 27, 0.10) 0%,
+      rgba(20, 22, 27, 0.15) 40%,
+      rgba(20, 22, 27, 0.55) 70%,
+      rgba(20, 22, 27, 0.88) 90%,
+      var(--bg) 100%);
+}
+
+/* Subtle vignette so edges of the image blend in horizontally too */
+.banner-fade-sides {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to right,
+      rgba(20, 22, 27, 0.35) 0%,
+      rgba(20, 22, 27, 0) 15%,
+      rgba(20, 22, 27, 0) 85%,
+      rgba(20, 22, 27, 0.35) 100%);
+}
+
+@media (max-width: 600px) {
+  .banner { height: 240px; }
+}
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 600px) {
+  .container { padding: 0 18px 64px; }
+}
+
+/* ===== Title ===== */
+header {
+  text-align: center;
+  margin-top: -120px;
+  margin-bottom: 56px;
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 600px) {
+  header { margin-top: -80px; margin-bottom: 36px; }
+}
+
+.title-stack {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: "Sora", sans-serif;
+  font-weight: 700;
+  font-size: clamp(72px, 16vw, 160px);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  color: var(--ink);
+}
+
+.title-stack span:nth-child(1) { color: var(--ink); font-weight: 700; }
+.title-stack span:nth-child(2) { color: var(--azul); font-weight: 800; font-style: italic; }
+
+/* ===== Suggest button + cards ===== */
+.suggest-section { margin: 48px 0; text-align: center; }
+
+.suggest-group {
+  display: inline-flex;
+  align-items: stretch;
+  background: var(--azul);
+  border-radius: 999px;
+  box-shadow: 0 4px 18px rgba(74,139,255,0.28);
+  transition: all 0.2s ease;
+  position: relative;
+}
+.suggest-group:hover {
+  background: var(--azul-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(74,139,255,0.4);
+}
+
+.suggest-button {
+  font-family: "Sora", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 14px 22px 14px 28px;
+  background: transparent;
+  color: #ffffff;
+  border: none;
+  border-radius: 999px 0 0 999px;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: none;
+}
+
+.zone-trigger {
+  font-family: "Sora", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 14px 18px 14px 14px;
+  background: transparent;
+  color: #ffffff;
+  border: none;
+  border-left: 1px solid rgba(255,255,255,0.25);
+  border-radius: 0 999px 999px 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.zone-trigger .zone-label-text {
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.zone-trigger .chev {
+  font-size: 10px;
+  opacity: 0.85;
+}
+
+.zone-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background-color: #1a1d24;
+  background-image: none;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.4);
+  z-index: 150;
+  isolation: isolate;
+  min-width: 220px;
+  max-height: 320px;
+  overflow-y: auto;
+  text-align: left;
+  animation: menuEnter 0.15s ease both;
+}
+@keyframes menuEnter {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.zone-menu[hidden] { display: none; }
+
+.zone-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.zone-menu-item:hover { background: var(--bg-card-hover); }
+.zone-menu-item.active {
+  background: var(--azul-soft);
+  color: var(--azul);
+  font-weight: 600;
+}
+.zone-menu-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 4px 0;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 28px;
+  align-items: stretch;
+}
+
+@media (max-width: 780px) {
+  .cards { grid-template-columns: 1fr; }
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow);
+  text-align: left;
+  animation: cardEnter 0.45s ease backwards;
+}
+
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card-zone {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+}
+
+.card-name {
+  font-family: "Sora", sans-serif;
+  font-weight: 400;
+  font-size: 19px;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-top: 4px;
+}
+
+.card-meta-row { display: flex; gap: 10px; align-items: flex-start; }
+.card-meta-label {
+  font-weight: 500;
+  color: var(--ink-faded);
+  min-width: 50px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding-top: 3px;
+}
+.card-meta-val { color: var(--ink); flex: 1; font-weight: 400; }
+
+.card-done-btn {
+  margin-top: auto;
+  padding: 11px;
+  background: transparent;
+  color: var(--azul);
+  border: 1.5px solid var(--azul);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+
+.card-done-btn:hover {
+  background: var(--azul-soft);
+}
+
+.card-done-btn.done {
+  background: var(--azul);
+  color: #ffffff;
+  pointer-events: none;
+  border-color: var(--azul);
+}
+
+/* ===== Table ===== */
+.table-section { margin-top: 56px; }
+
+.table-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+thead {
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--line-strong);
+}
+
+th {
+  text-align: left;
+  padding: 14px 18px;
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+
+th:hover { color: var(--ink); }
+th.sorted { color: var(--azul); }
+th.sorted::after { content: ' ↓'; font-size: 10px; opacity: 0.7; }
+th.sorted.asc::after { content: ' ↑'; }
+
+td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+  color: var(--ink);
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg-card-hover); }
+
+.chore-name { font-weight: 400; font-style: italic; color: var(--ink); }
+
+.zone-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.tools-cell {
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  max-width: 320px;
+  line-height: 1.45;
+}
+
+.tools-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tools-list li {
+  position: relative;
+  padding-left: 14px;
+  margin: 2px 0;
+}
+.tools-list li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.55em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--azul);
+}
+.card-meta-val .tools-list {
+  color: var(--ink);
+}
+
+.days-cell { font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 12.5px; }
+.days-cell.overdue { color: var(--warning); font-weight: 600; }
+.days-cell.warn    { color: var(--warning-yellow); font-weight: 600; }
+.days-cell.fresh   { color: var(--good); }
+.days-cell.never   { color: var(--ink-faded); font-style: italic; }
+
+.num-cell { font-variant-numeric: tabular-nums; font-size: 13px; }
+
+.row-done-btn {
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.row-done-btn:hover {
+  background: var(--azul);
+  color: #ffffff;
+  border-color: var(--azul);
+}
+
+/* ===== Mobile cards ===== */
+.mobile-cards { display: none; }
+
+@media (max-width: 760px) {
+  .desk-table { display: none; }
+  .mobile-cards { display: block; }
+  .mobile-card {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-card);
+  }
+  .mobile-card:last-child { border-bottom: none; }
+  .mobile-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .mobile-card-name { font-weight: 500; font-size: 14px; }
+  .mobile-card-meta {
+    color: var(--ink-soft);
+    font-size: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin-top: 6px;
+  }
+  .mobile-card-meta > span { display: inline-flex; align-items: center; gap: 4px; }
+  .mobile-card-meta .lbl { color: var(--ink-faded); font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; }
+}
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(120px);
+  background: var(--bg-card);
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  padding: 12px 12px 12px 20px;
+  border-radius: 999px;
+  font-size: 13px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.3s ease;
+  z-index: 100;
+  max-width: calc(100vw - 32px);
+}
+
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.toast-msg {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60vw;
+}
+
+.toast-undo {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.toast-undo:hover { background: var(--azul); border-color: var(--azul); color: #fff; }
+
+.cards:empty { display: none; }
+
+/* ===== Confetti ===== */
+.confetti-particle {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+  z-index: 200;
+  border-radius: 1px;
+  will-change: transform, opacity;
+  animation: confettiFly 0.95s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+@keyframes confettiFly {
+  0%   { transform: translate(-50%, -50%) translate(0, 0) rotate(0deg); opacity: 1; }
+  60%  { opacity: 1; }
+  100% { transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- Banner -->
+<div class="banner">
+  <img class="banner-img" src="kitchen.webp" alt="" aria-hidden="true">
+  <div class="banner-fade-sides"></div>
+  <div class="banner-fade"></div>
+</div>
+
+<div class="container">
+  <header>
+    <h1 class="title-stack">
+      <span>Tyd</span><span>ee</span>
+    </h1>
+  </header>
+
+  <section class="suggest-section">
+    <div class="suggest-group">
+      <button class="suggest-button" onclick="suggest()">Suggest 3 Chores</button>
+      <button class="zone-trigger" onclick="toggleZoneMenu(event)" aria-label="Filter by zone">
+        <span class="zone-label-text" id="zoneLabelText">Any zone</span>
+        <span class="chev">▾</span>
+      </button>
+      <div class="zone-menu" id="zoneMenu" hidden></div>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="table-section">
+    <div class="table-wrap" id="tableWrap"></div>
+  </section>
+</div>
+
+<div class="toast" id="toast">
+  <span class="toast-msg" id="toastMsg"></span>
+  <button class="toast-undo" onclick="undo()">Undo</button>
+</div>
+
+<script>
+  // ====== CHORE DATA ======
+  const CHORES = [
+    // 3rd floor bathroom
+    { id: 'b3-shower-spray',   name: 'Clean shower w/ spray',           zone: '3rd Bathroom',       floor: 3, mins: 10, tools: 'Shower spray (2nd floor bathroom), microfiber cloth (2nd floor bedroom)',                                                                  freq: 14 },
+    { id: 'b3-shower-glass',   name: 'Clean shower glass door',         zone: '3rd Bathroom',       floor: 3, mins: 10, tools: 'Glass cleaner (2nd floor bathroom), squeegee (3rd floor bathroom), microfiber (2nd floor bedroom)',                                          freq: 14 },
+    { id: 'b3-rag-soap',       name: 'Wipe down w/ rag & soap',         zone: '3rd Bathroom',       floor: 3, mins: 15, tools: 'Rag (2nd floor bedroom), dish soap (1st floor kitchen)',                                                                                       freq: 7  },
+    { id: 'b3-mirror',         name: 'Wash mirror',                     zone: '3rd Bathroom',       floor: 3, mins: 5,  tools: 'Glass cleaner (2nd floor bathroom), microfiber (2nd floor bedroom)',                                                                          freq: 14 },
+    { id: 'b3-trash',          name: 'Take out trash',                  zone: '3rd Bathroom',       floor: 3, mins: 5,  tools: 'Trash bag (1st floor kitchen)',                                                                                                                freq: 7  },
+    { id: 'b3-toilet',         name: 'Clean toilet',                    zone: '3rd Bathroom',       floor: 3, mins: 5,  tools: 'Toilet cleaner (2nd floor bathroom), toilet brush (3rd floor bathroom), rag (2nd floor bedroom)',                                              freq: 7  },
+    { id: 'b3-soap-refill',    name: 'Refill hand soap',                zone: '3rd Bathroom',       floor: 3, mins: 5,  tools: 'Hand soap refill (2nd floor bathroom)',                                                                                                        freq: 30 },
+    { id: 'b3-toiletry-stock', name: 'Take stock of toiletries',        zone: '3rd Bathroom',       floor: 3, mins: 5,  tools: 'None',                                                                                                                                        freq: 28 },
+
+    // 3rd floor bedroom
+    { id: 'r3-water-bottles',  name: 'Clean water bottles',             zone: '3rd Bedroom',        floor: 3, mins: 10, tools: 'Bottle brush (3rd floor bathroom), dish soap (1st floor kitchen)',                                                                            freq: 14 },
+    { id: 'r3-rag-soap',       name: 'Wipe down w/ rag & soap',         zone: '3rd Bedroom',        floor: 3, mins: 15, tools: 'Rag (2nd floor bedroom), dish soap (1st floor kitchen)',                                                                                       freq: 14 },
+    { id: 'r3-vitamins',       name: 'Refill vitamins',                 zone: '3rd Bedroom',        floor: 3, mins: 5,  tools: 'Vitamin bottles (3rd floor bathroom), pill organizer (3rd floor bedroom)',                                                                    freq: 7  },
+    { id: 'r3-humidifier',     name: 'Clean humidifier',                zone: '3rd Bedroom',        floor: 3, mins: 15, tools: 'White vinegar (1st floor kitchen), brush (1st floor kitchen), rag (2nd floor bedroom)',                                                       freq: 14 },
+    { id: 'r3-monitors',       name: 'Clean monitors + Surface screen', zone: '3rd Bedroom',        floor: 3, mins: 5,  tools: 'Screen cleaner (3rd floor office), microfiber (2nd floor bedroom)',                                                                           freq: 28 },
+    { id: 'r3-computer-air',   name: 'Clean computer w/ compressed air',zone: '3rd Bedroom',        floor: 3, mins: 5,  tools: 'Compressed air can (3rd floor office)',                                                                                                       freq: 28 },
+
+    // 3rd floor general
+    { id: 'g3-vacuum',         name: 'Vacuum 3rd floor',                zone: '3rd Floor (general)',floor: 3, mins: 10, tools: 'Vacuum (1st floor living room)',                                                                                                               freq: 7  },
+    { id: 'g3-tidy',           name: 'Tidy up 3rd floor',               zone: '3rd Floor (general)',floor: 3, mins: 15, tools: 'Hands',                                                                                                                                        freq: 7  },
+
+    // 2nd floor bathroom
+    { id: 'b2-toilet',         name: 'Clean toilet',                    zone: '2nd Bathroom',       floor: 2, mins: 5,  tools: 'Toilet cleaner (2nd floor bathroom), toilet brush (2nd floor bathroom), rag (2nd floor bedroom)',                                              freq: 7  },
+    { id: 'b2-rag-soap',       name: 'Wipe down w/ rag & soap',         zone: '2nd Bathroom',       floor: 2, mins: 15, tools: 'Rag (2nd floor bedroom), dish soap (1st floor kitchen)',                                                                                       freq: 7  },
+    { id: 'b2-trash',          name: 'Take out trash',                  zone: '2nd Bathroom',       floor: 2, mins: 5,  tools: 'Trash bag (1st floor kitchen)',                                                                                                                freq: 7  },
+    { id: 'b2-soap-refill',    name: 'Refill hand soap',                zone: '2nd Bathroom',       floor: 2, mins: 5,  tools: 'Hand soap refill (2nd floor bathroom)',                                                                                                        freq: 30 },
+
+    // 2nd floor bedroom
+    { id: 'r2-rag-soap',       name: 'Wipe down w/ rag & soap',         zone: '2nd Bedroom',        floor: 2, mins: 10, tools: 'Rag (2nd floor bedroom), dish soap (1st floor kitchen)',                                                                                       freq: 14 },
+
+    // 2nd floor office
+    { id: 'o2-rag-soap',       name: 'Wipe down w/ rag & soap',         zone: '2nd Office',         floor: 2, mins: 10, tools: 'Rag (2nd floor bedroom), dish soap (1st floor kitchen)',                                                                                       freq: 14 },
+
+    // 2nd floor general
+    { id: 'g2-vacuum',         name: 'Vacuum 2nd floor',                zone: '2nd Floor (general)',floor: 2, mins: 10, tools: 'Vacuum (1st floor living room)',                                                                                                               freq: 7  },
+    { id: 'g2-tidy',           name: 'Tidy up 2nd floor',               zone: '2nd Floor (general)',floor: 2, mins: 15, tools: 'Hands',                                                                                                                                        freq: 7  },
+
+    // 1st floor kitchen
+    { id: 'k1-steel',          name: 'Clean stainless steel',           zone: '1st Kitchen',        floor: 1, mins: 10, tools: 'Stainless steel cleaner (1st floor kitchen), microfiber (2nd floor bedroom)',                                                                  freq: 14 },
+    { id: 'k1-kettle',         name: 'Descale tea kettle',              zone: '1st Kitchen',        floor: 1, mins: 15, tools: 'White vinegar (1st floor kitchen)',                                                                                                            freq: 56 },
+    { id: 'k1-fridge',         name: 'Clean fridge w/ rag',             zone: '1st Kitchen',        floor: 1, mins: 15, tools: 'Rag (2nd floor bedroom), dish soap (1st floor kitchen)',                                                                                       freq: 21 },
+    { id: 'k1-stovetop',       name: 'Clean under stovetop',            zone: '1st Kitchen',        floor: 1, mins: 15, tools: 'Rag (2nd floor bedroom), degreaser (1st floor kitchen)',                                                                                       freq: 21 },
+    { id: 'k1-microwave',      name: 'Clean microwave',                 zone: '1st Kitchen',        floor: 1, mins: 5,  tools: 'Rag (2nd floor bedroom), dish soap (1st floor kitchen), bowl of water',                                                                        freq: 14 },
+    { id: 'k1-rag-soap',       name: 'Wipe down kitchen w/ rag & soap', zone: '1st Kitchen',        floor: 1, mins: 15, tools: 'Rag (2nd floor bedroom), dish soap (1st floor kitchen)',                                                                                       freq: 7  },
+
+    // 1st floor living room
+    { id: 'l1-rag-soap',       name: 'Wipe down w/ rag & soap',         zone: '1st Living Room',    floor: 1, mins: 10, tools: 'Rag (2nd floor bedroom), dish soap (1st floor kitchen)',                                                                                       freq: 14 },
+
+    // 1st floor general
+    { id: 'g1-vacuum',         name: 'Vacuum 1st floor',                zone: '1st Floor (general)',floor: 1, mins: 10, tools: 'Vacuum (1st floor living room)',                                                                                                               freq: 7  },
+    { id: 'g1-tidy',           name: 'Tidy up 1st floor',               zone: '1st Floor (general)',floor: 1, mins: 15, tools: 'Hands',                                                                                                                                        freq: 7  },
+  ];
+
+  // ====== STORAGE (works in Claude AND on Netlify) ======
+  const storage = {
+    async get(key) {
+      if (typeof window !== 'undefined' && window.storage && typeof window.storage.get === 'function') {
+        try {
+          const r = await window.storage.get(key);
+          return r ? r.value : null;
+        } catch (e) { return null; }
+      }
+      try { return localStorage.getItem(key); } catch (e) { return null; }
+    },
+    async set(key, value) {
+      if (typeof window !== 'undefined' && window.storage && typeof window.storage.set === 'function') {
+        try { return await window.storage.set(key, value); } catch (e) {}
+      }
+      try { localStorage.setItem(key, value); } catch (e) {}
+    }
+  };
+
+  let state = { lastDone: {} };
+
+  async function loadState() {
+    const raw = await storage.get('rotation-state-v2');
+    if (raw) {
+      try { state = JSON.parse(raw); } catch (e) {}
+      if (!state.lastDone) state.lastDone = {};
+    }
+  }
+
+  async function saveState() {
+    await storage.set('rotation-state-v2', JSON.stringify(state));
+  }
+
+  // ====== HELPERS ======
+  function daysSince(iso) {
+    if (!iso) return Infinity;
+    return (Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24);
+  }
+
+  function overdueScore(chore) {
+    const d = daysSince(state.lastDone[chore.id]);
+    if (d === Infinity) return Infinity;
+    return d / chore.freq;
+  }
+
+  function daysSinceLabel(iso) {
+    if (!iso) return '-';
+    const d = daysSince(iso);
+    if (d < 1) return '0';
+    const r = Math.floor(d);
+    return r === 1 ? '1 day ago' : `${r} days ago`;
+  }
+
+  // ====== ZONE FILTER ======
+  let zoneFilter = null; // null = any zone
+
+  function buildZoneMenu() {
+    const menu = document.getElementById('zoneMenu');
+    const zones = [...new Set(CHORES.map(c => c.zone))];
+    let html = `<button class="zone-menu-item ${zoneFilter === null ? 'active' : ''}" onclick="setZoneFilter(null)">Any zone</button>`;
+    html += '<div class="zone-menu-divider"></div>';
+    zones.forEach(z => {
+      html += `<button class="zone-menu-item ${zoneFilter === z ? 'active' : ''}" onclick="setZoneFilter('${z.replace(/'/g, "\\'")}')">${escapeHtml(z)}</button>`;
+    });
+    menu.innerHTML = html;
+  }
+
+  function toggleZoneMenu(ev) {
+    ev.stopPropagation();
+    const menu = document.getElementById('zoneMenu');
+    if (menu.hasAttribute('hidden')) {
+      buildZoneMenu();
+      menu.removeAttribute('hidden');
+    } else {
+      menu.setAttribute('hidden', '');
+    }
+  }
+
+  function setZoneFilter(zone) {
+    zoneFilter = zone;
+    document.getElementById('zoneLabelText').textContent = zone || 'Any zone';
+    document.getElementById('zoneMenu').setAttribute('hidden', '');
+  }
+
+  document.addEventListener('click', (e) => {
+    const menu = document.getElementById('zoneMenu');
+    const trigger = document.querySelector('.zone-trigger');
+    if (!menu || !trigger) return;
+    if (!menu.contains(e.target) && !trigger.contains(e.target)) {
+      menu.setAttribute('hidden', '');
+    }
+  });
+
+  // ====== SUGGEST ======
+  function suggest() {
+    const pool = zoneFilter ? CHORES.filter(c => c.zone === zoneFilter) : CHORES;
+    const scored = pool.map(c => ({ chore: c, score: overdueScore(c) }));
+    scored.sort((a, b) => {
+      if (a.score !== b.score) return b.score - a.score;
+      return Math.random() - 0.5;
+    });
+    if (scored.length === 0) { renderCards([]); return; }
+
+    const top = scored[0].chore;
+    const RECENT_THRESHOLD = 0.5;
+    const eligible = scored.filter(x => x.chore.id !== top.id && x.score >= RECENT_THRESHOLD).map(x => x.chore);
+
+    const picks = [top];
+    // When a zone is locked, every eligible chore is already in-zone.
+    if (!zoneFilter) {
+      for (const c of eligible.filter(c => c.zone === top.zone)) {
+        if (picks.length >= 3) break;
+        picks.push(c);
+      }
+      for (const c of eligible.filter(c => c.floor === top.floor && !picks.includes(c))) {
+        if (picks.length >= 3) break;
+        picks.push(c);
+      }
+    }
+    for (const c of eligible) {
+      if (picks.length >= 3) break;
+      if (!picks.includes(c)) picks.push(c);
+    }
+
+    renderCards(picks);
+  }
+
+  // ====== RENDER: CARDS ======
+  function renderCards(picks) {
+    const el = document.getElementById('cards');
+    el.innerHTML = '';
+    picks.forEach((c, i) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.animationDelay = `${i * 0.08}s`;
+      card.innerHTML = `
+        <div class="card-zone">${escapeHtml(c.zone)}</div>
+        <div class="card-name">${escapeHtml(c.name)}</div>
+        <div class="card-meta">
+          <div class="card-meta-row"><span class="card-meta-label">Time</span><span class="card-meta-val">${c.mins} min</span></div>
+          <div class="card-meta-row"><span class="card-meta-label">Tools</span><span class="card-meta-val">${renderTools(c.tools)}</span></div>
+          <div class="card-meta-row"><span class="card-meta-label">Last</span><span class="card-meta-val">${daysSinceLabel(state.lastDone[c.id])}</span></div>
+        </div>
+        <button class="card-done-btn" data-id="${c.id}" onclick="markDone('${c.id}', event)">Done</button>
+      `;
+      el.appendChild(card);
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+  }
+
+  function renderTools(toolsStr) {
+    const items = toolsStr.split(',').map(s => s.trim()).filter(Boolean);
+    const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+    return '<ul class="tools-list">' + items.map(t => `<li>${escapeHtml(cap(t))}</li>`).join('') + '</ul>';
+  }
+
+  function statusClass(chore) {
+    const iso = state.lastDone[chore.id];
+    if (!iso) return 'never';
+    const pct = daysSince(iso) / chore.freq;
+    if (pct >= 1)    return 'overdue'; // red
+    if (pct >= 0.75) return 'warn';    // yellow
+    return 'fresh';                    // green
+  }
+
+  // ====== RENDER: TABLE ======
+  // Column order: Zone | Chore | Tools | Time | Cadence | Last Done
+  let sortState = { col: 'days', asc: false };
+
+  function sortChores() {
+    return [...CHORES].sort((a, b) => {
+      let av, bv;
+      switch (sortState.col) {
+        case 'zone':  av = a.zone;  bv = b.zone;  break;
+        case 'name':  av = a.name.toLowerCase();  bv = b.name.toLowerCase();  break;
+        case 'tools': av = a.tools.toLowerCase(); bv = b.tools.toLowerCase(); break;
+        case 'mins':  av = a.mins;  bv = b.mins;  break;
+        case 'freq':  av = a.freq;  bv = b.freq;  break;
+        case 'days':
+        default:
+          av = daysSince(state.lastDone[a.id]);
+          bv = daysSince(state.lastDone[b.id]);
+          if (av === Infinity) av = 1e12;
+          if (bv === Infinity) bv = 1e12;
+      }
+      const r = av < bv ? -1 : av > bv ? 1 : 0;
+      return sortState.asc ? r : -r;
+    });
+  }
+
+  function renderTable() {
+    const wrap = document.getElementById('tableWrap');
+    const rows = sortChores();
+    const headers = [
+      { id: 'zone',  label: 'Zone' },
+      { id: 'name',  label: 'Chore' },
+      { id: 'tools', label: 'Tools' },
+      { id: 'mins',  label: 'Time (min)' },
+      { id: 'freq',  label: 'Cadence' },
+      { id: 'days',  label: 'Last Done' },
+    ];
+
+    let html = '<table class="desk-table"><thead><tr>';
+    headers.forEach(h => {
+      const cls = sortState.col === h.id ? `sorted ${sortState.asc ? 'asc' : ''}` : '';
+      html += `<th class="${cls}" onclick="setSort('${h.id}')">${h.label}</th>`;
+    });
+    html += '<th></th></tr></thead><tbody>';
+
+    rows.forEach(c => {
+      const iso = state.lastDone[c.id];
+      const cls = statusClass(c);
+      html += `<tr>
+        <td><span class="zone-tag">${escapeHtml(c.zone)}</span></td>
+        <td class="chore-name">${escapeHtml(c.name)}</td>
+        <td class="tools-cell">${renderTools(c.tools)}</td>
+        <td class="num-cell">${c.mins}</td>
+        <td class="num-cell">${c.freq}d</td>
+        <td class="days-cell ${cls}">${daysSinceLabel(iso)}</td>
+        <td><button class="row-done-btn" onclick="markDone('${c.id}', event)">Done</button></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+
+    // Mobile view
+    html += '<div class="mobile-cards">';
+    rows.forEach(c => {
+      const iso = state.lastDone[c.id];
+      const cls = statusClass(c);
+      html += `<div class="mobile-card">
+        <div class="mobile-card-top">
+          <div style="flex:1; min-width:0">
+            <div class="zone-tag">${escapeHtml(c.zone)}</div>
+            <div class="mobile-card-name" style="margin-top:4px">${escapeHtml(c.name)}</div>
+          </div>
+          <button class="row-done-btn" onclick="markDone('${c.id}', event)">Done</button>
+        </div>
+        <div class="mobile-card-meta">
+          <span><span class="lbl">Time</span> ${c.mins} min</span>
+          <span><span class="lbl">Every</span> ${c.freq}d</span>
+          <span><span class="lbl">Last</span> <span class="days-cell ${cls}">${daysSinceLabel(iso)}</span></span>
+        </div>
+        <div class="mobile-card-meta" style="margin-top:4px">
+          <span><span class="lbl">Tools</span> ${renderTools(c.tools)}</span>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+
+    wrap.innerHTML = html;
+  }
+
+  function setSort(col) {
+    if (sortState.col === col) sortState.asc = !sortState.asc;
+    else { sortState.col = col; sortState.asc = (col === 'name' || col === 'zone' || col === 'tools'); }
+    renderTable();
+  }
+
+  // ====== CONFETTI ======
+  function confettiBurst(originEl) {
+    if (!originEl) return;
+    const rect = originEl.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const colors = ['#4a8bff', '#ffffff', '#6eb88c', '#e8c34a', '#9aa0ac', '#c2d4ff'];
+    const count = 28;
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      p.className = 'confetti-particle';
+      p.style.left = cx + 'px';
+      p.style.top = cy + 'px';
+      p.style.background = colors[i % colors.length];
+      const w = 6 + Math.random() * 6;
+      const h = 4 + Math.random() * 8;
+      p.style.width = w + 'px';
+      p.style.height = h + 'px';
+      // Bias spread upward but allow full 360
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.6;
+      const distance = 70 + Math.random() * 90;
+      const dx = Math.cos(angle) * distance;
+      const dy = Math.sin(angle) * distance - 20; // slight upward lift
+      p.style.setProperty('--dx', dx + 'px');
+      p.style.setProperty('--dy', dy + 'px');
+      p.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+      p.style.animationDelay = (Math.random() * 0.04) + 's';
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 1100);
+    }
+  }
+
+  // ====== MARK DONE + UNDO ======
+  let undoData = null;
+  let toastTimer = null;
+
+  async function markDone(id, ev) {
+    if (ev) ev.preventDefault();
+    const chore = CHORES.find(c => c.id === id);
+    if (!chore) return;
+
+    // Fire confetti if the click originated from a suggestion card's Done button
+    const clickedFromCard = ev && ev.currentTarget && ev.currentTarget.classList.contains('card-done-btn');
+    if (clickedFromCard) confettiBurst(ev.currentTarget);
+
+    undoData = { id, prev: state.lastDone[id] || null };
+    state.lastDone[id] = new Date().toISOString();
+    await saveState();
+
+    const btn = document.querySelector(`.card-done-btn[data-id="${id}"]`);
+    if (btn) { btn.textContent = '✓ Done'; btn.classList.add('done'); }
+
+    renderTable();
+    showToast(`Logged: ${chore.name}`);
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 5000);
+  }
+
+  async function undo() {
+    if (!undoData) return;
+    if (undoData.prev === null) delete state.lastDone[undoData.id];
+    else state.lastDone[undoData.id] = undoData.prev;
+    await saveState();
+
+    const btn = document.querySelector(`.card-done-btn[data-id="${undoData.id}"]`);
+    if (btn) { btn.textContent = 'Done'; btn.classList.remove('done'); }
+
+    renderTable();
+    document.getElementById('toast').classList.remove('show');
+    undoData = null;
+  }
+
+  // ====== INIT ======
+  (async function init() {
+    await loadState();
+    renderTable();
+  })();
+</script>
+</body>
+</html>
