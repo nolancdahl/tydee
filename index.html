@@ -558,9 +558,132 @@ tr:hover td { background: var(--bg-card-hover); }
   60%  { opacity: 1; }
   100% { transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity: 0; }
 }
+
+/* ===== Login overlay ===== */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: 24px;
+}
+.login-overlay[hidden] { display: none; }
+.login-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line-strong);
+  border-radius: 18px;
+  padding: 40px 32px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+.login-brand {
+  font-family: "Sora", sans-serif;
+  font-weight: 800;
+  font-size: 48px;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.login-brand span:nth-child(2) { color: var(--azul); font-style: italic; }
+.login-tagline {
+  color: var(--ink-soft);
+  font-size: 13px;
+  margin-bottom: 28px;
+}
+.login-btn {
+  font-family: "Sora", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 14px 22px;
+  background: var(--azul);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s;
+}
+.login-btn:hover { background: var(--azul-dark); transform: translateY(-1px); }
+.login-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.login-error {
+  color: var(--warning);
+  font-size: 12px;
+  margin-top: 14px;
+  min-height: 16px;
+}
+
+/* ===== Return-to-homebase pill ===== */
+.return-pill {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 120;
+  background: rgba(38, 42, 53, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--ink);
+  font-family: "Sora", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  text-decoration: none;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.return-pill:hover { background: var(--bg-card-hover); transform: translateY(-1px); }
+.return-pill[data-active="1"] { display: inline-flex; }
+
+/* ===== Sign-out chip ===== */
+.signout-chip {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 120;
+  background: rgba(38, 42, 53, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--ink-soft);
+  font-family: "Sora", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  display: none;
+  transition: all 0.15s;
+}
+.signout-chip:hover { color: var(--ink); border-color: var(--line-strong); }
+.signout-chip[data-active="1"] { display: inline-flex; }
 </style>
 </head>
 <body>
+
+<!-- Login overlay (shown until Firebase auth resolves a user) -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <div class="login-brand"><span>Tyd</span><span>ee</span></div>
+    <div class="login-tagline">sign in to sync your chores across devices</div>
+    <button class="login-btn" id="loginBtn" onclick="cleaningAuth.signIn()">Sign in with Google</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- Return-to-homebase pill (shown when launched from homebase) -->
+<a class="return-pill" id="returnPill" href="#">← back to homebase</a>
+
+<!-- Sign-out chip (shown when signed in) -->
+<button class="signout-chip" id="signoutChip" onclick="cleaningAuth.signOut()">sign out</button>
 
 <!-- Banner -->
 <div class="banner">
@@ -597,6 +720,37 @@ tr:hover td { background: var(--bg-card-hover); }
   <span class="toast-msg" id="toastMsg"></span>
   <button class="toast-undo" onclick="undo()">Undo</button>
 </div>
+
+<!-- Firebase init (CDN ESM modules — shared garmint-37d10 project). -->
+<script>window.firebaseReady = new Promise((r) => { window.__resolveFirebase = r; });</script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDumiv3QAFL_n4xnKRdTyJ1Kjg5HKY5D-0",
+    authDomain: "garmint-37d10.firebaseapp.com",
+    projectId: "garmint-37d10",
+    storageBucket: "garmint-37d10.firebasestorage.app",
+    messagingSenderId: "380211467933",
+    appId: "1:380211467933:web:5bd7f7594307194049a674",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+  const db = getFirestore(app);
+
+  window.cleaningFirebase = {
+    auth, provider, db,
+    signIn: () => signInWithPopup(auth, provider),
+    signOut: () => signOut(auth),
+    onAuthStateChanged,
+    doc, setDoc, getDoc, onSnapshot, serverTimestamp,
+  };
+  window.__resolveFirebase?.(window.cleaningFirebase);
+</script>
 
 <script>
   // ====== CHORE DATA ======
@@ -655,37 +809,79 @@ tr:hover td { background: var(--bg-card-hover); }
     { id: 'g1-tidy',           name: 'Tidy up 1st floor',               zone: '1st Floor (general)',floor: 1, mins: 15, tools: 'Hands',                                                                                                                                        freq: 7  },
   ];
 
-  // ====== STORAGE (works in Claude AND on Netlify) ======
-  const storage = {
-    async get(key) {
-      if (typeof window !== 'undefined' && window.storage && typeof window.storage.get === 'function') {
-        try {
-          const r = await window.storage.get(key);
-          return r ? r.value : null;
-        } catch (e) { return null; }
-      }
-      try { return localStorage.getItem(key); } catch (e) { return null; }
-    },
-    async set(key, value) {
-      if (typeof window !== 'undefined' && window.storage && typeof window.storage.set === 'function') {
-        try { return await window.storage.set(key, value); } catch (e) {}
-      }
-      try { localStorage.setItem(key, value); } catch (e) {}
-    }
-  };
+  // ====== STORAGE (Firestore-backed, shared garmint-37d10 project) ======
+  // Doc shape: users/<uid>/data/cleaning_chores_v1 = { lastDone: { [id]: iso }, updatedAt }
+  const LOCAL_KEY = 'rotation-state-v2';
+  const DOC_COLLECTION = 'data';
+  const DOC_ID = 'cleaning_chores_v1';
 
   let state = { lastDone: {} };
+  let fb = null;
+  let currentUser = null;
+  let unsubscribeSnapshot = null;
+  let lastWrittenJson = null;
+  let saveTimer = null;
 
-  async function loadState() {
-    const raw = await storage.get('rotation-state-v2');
-    if (raw) {
-      try { state = JSON.parse(raw); } catch (e) {}
-      if (!state.lastDone) state.lastDone = {};
+  function userDocRef() {
+    if (!fb || !currentUser) return null;
+    return fb.doc(fb.db, 'users', currentUser.uid, DOC_COLLECTION, DOC_ID);
+  }
+
+  async function loadStateFromFirestore() {
+    const ref = userDocRef();
+    if (!ref) return false;
+    const snap = await fb.getDoc(ref);
+    if (snap.exists()) {
+      const data = snap.data();
+      state = { lastDone: data.lastDone || {} };
+      lastWrittenJson = JSON.stringify(state.lastDone);
+      return true;
     }
+    return false;
+  }
+
+  async function migrateFromLocalStorage() {
+    let raw = null;
+    try { raw = localStorage.getItem(LOCAL_KEY); } catch (e) {}
+    if (!raw) return false;
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.lastDone && Object.keys(parsed.lastDone).length) {
+        state = { lastDone: parsed.lastDone };
+        await saveStateNow();
+        try { localStorage.removeItem(LOCAL_KEY); } catch (e) {}
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  async function saveStateNow() {
+    const ref = userDocRef();
+    if (!ref) return;
+    const json = JSON.stringify(state.lastDone);
+    lastWrittenJson = json;
+    await fb.setDoc(ref, { lastDone: state.lastDone, updatedAt: fb.serverTimestamp() }, { merge: true });
   }
 
   async function saveState() {
-    await storage.set('rotation-state-v2', JSON.stringify(state));
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => { saveStateNow().catch(console.error); }, 300);
+  }
+
+  function subscribeToState() {
+    const ref = userDocRef();
+    if (!ref) return;
+    if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
+    unsubscribeSnapshot = fb.onSnapshot(ref, (snap) => {
+      if (!snap.exists()) return;
+      const data = snap.data();
+      const incoming = JSON.stringify(data.lastDone || {});
+      if (incoming === lastWrittenJson) return; // echo of our own write
+      state = { lastDone: data.lastDone || {} };
+      lastWrittenJson = incoming;
+      renderTable();
+    });
   }
 
   // ====== HELPERS ======
@@ -994,11 +1190,90 @@ tr:hover td { background: var(--bg-card-hover); }
     undoData = null;
   }
 
-  // ====== INIT ======
-  (async function init() {
-    await loadState();
+  // ====== AUTH + INIT ======
+  const cleaningAuth = {
+    async signIn() {
+      const btn = document.getElementById('loginBtn');
+      const err = document.getElementById('loginError');
+      err.textContent = '';
+      btn.disabled = true;
+      btn.textContent = 'Signing in...';
+      try {
+        await fb.signIn();
+      } catch (e) {
+        console.error(e);
+        err.textContent = e?.code === 'auth/unauthorized-domain'
+          ? 'This domain is not authorized. Add it in Firebase console.'
+          : (e?.message || 'Sign-in failed');
+        btn.disabled = false;
+        btn.textContent = 'Sign in with Google';
+      }
+    },
+    async signOut() {
+      try { await fb.signOut(); } catch (e) { console.error(e); }
+    },
+  };
+  window.cleaningAuth = cleaningAuth;
+
+  function setupReturnPill() {
+    const params = new URLSearchParams(window.location.search);
+    const returnTo = params.get('returnTo');
+    if (!returnTo) return;
+    const pill = document.getElementById('returnPill');
+    pill.dataset.active = '1';
+    pill.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.href = decodeURIComponent(returnTo);
+    });
+  }
+
+  async function bootSignedIn(user) {
+    currentUser = user;
+    document.getElementById('loginOverlay').setAttribute('hidden', '');
+    document.getElementById('signoutChip').dataset.active = '1';
+
+    const hadRemote = await loadStateFromFirestore();
+    if (!hadRemote) await migrateFromLocalStorage();
+
     renderTable();
+    subscribeToState();
+  }
+
+  function bootSignedOut() {
+    currentUser = null;
+    state = { lastDone: {} };
+    lastWrittenJson = null;
+    if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
+    document.getElementById('signoutChip').dataset.active = '';
+    const overlay = document.getElementById('loginOverlay');
+    overlay.removeAttribute('hidden');
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = false;
+    btn.textContent = 'Sign in with Google';
+  }
+
+  (async function init() {
+    setupReturnPill();
+    fb = await window.firebaseReady;
+    fb.onAuthStateChanged(fb.auth, (user) => {
+      if (user) bootSignedIn(user).catch(console.error);
+      else bootSignedOut();
+    });
   })();
+</script>
+
+<!-- homebase launcher: top-left button + side panel listing all sibling apps.
+     Source: Home Base App\public\launcher.js -->
+<script>
+  (function () {
+    var isLocal = /^(localhost|127\.0\.0\.1|192\.|10\.)/.test(location.hostname)
+    var origin = isLocal ? 'http://localhost:5290' : 'https://homebase-nolan.netlify.app'
+    var s = document.createElement('script')
+    s.src = origin + '/launcher.js'
+    s.defer = true
+    s.dataset.appKey = 'cleaning'
+    document.body.appendChild(s)
+  })()
 </script>
 </body>
 </html>

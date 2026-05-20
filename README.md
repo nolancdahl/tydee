@@ -29,7 +29,7 @@ Auto-deploys to Netlify on every push to `main`.
 
 ## Data storage
 
-History persists per-device via `localStorage`. There's no cross-device sync yet — marking "Done" on the phone won't show up on the desktop and vice versa. Use one device as the source of truth, or add a backend (e.g. Supabase) for sync.
+History syncs across devices via Firebase Firestore (shared `garmint-37d10` project, same as the other Home Base apps). Stored at `users/<uid>/data/cleaning_chores_v1`. Sign in with Google on each device and marks made on one device appear on the others in real time. Existing `localStorage` data is auto-migrated on first sign-in.
 
 ## Editing the chore list
 
