@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tydee</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -30,7 +31,23 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body { background: var(--bg); }
+html { background: var(--bg); }
+/* Kitchen photo as the app background (fixed, full-viewport), with a dark scrim over it for
+   legibility. All content (banner, title, table, buttons) sits on top of this. */
+body {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(20, 22, 27, 0.10), rgba(20, 22, 27, 0.10)),
+    url('kitchen.webp');
+  background-size: cover;
+  background-position: 44% center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+/* On phones the cover-crop hides the right side; shift right so the orchid + lemons show. */
+@media (max-width: 600px) {
+  body { background-position: right center; }
+}
 
 body {
   font-family: "Sora", system-ui, sans-serif;
@@ -105,17 +122,10 @@ body {
 }
 
 /* ===== Title ===== */
-header {
-  text-align: center;
-  margin-top: -120px;
-  margin-bottom: 56px;
-  position: relative;
-  z-index: 2;
-}
-
-@media (max-width: 600px) {
-  header { margin-top: -80px; margin-bottom: 36px; }
-}
+/* (Removed the old generic `header { margin-top: -120px; ... }` rule. It was vestigial from the
+   original centered-title design, and it bled into BOTH our .arch-banner and the injected
+   homebase launcher panel <header> — breaking the banner and hiding the launcher's X + "Nolan OS".
+   .arch-banner carries its own styles; the launcher header now has no rule touching it.) */
 
 .title-stack {
   display: inline-flex;
@@ -130,6 +140,43 @@ header {
 
 .title-stack span:nth-child(1) { color: var(--ink); font-weight: 700; }
 .title-stack span:nth-child(2) { color: var(--azul); font-weight: 800; font-style: italic; }
+
+/* ===== Arch banner (solid brand bar + curved bottom edge) ===== */
+.arch-banner {
+  position: relative;
+  background: rgba(0, 0, 0, 0.5);    /* black at 50% — photo shows through */
+  min-height: 96px;
+  padding: 16px 24px 60px;
+  margin: 0;
+  text-align: left;
+  /* Follow the arch: cut a concave dome from the bar's bottom so the photo shows through. */
+  -webkit-mask-image: radial-gradient(ellipse 58% 60px at 50% 100%, transparent 99%, #000 100%);
+          mask-image: radial-gradient(ellipse 58% 60px at 50% 100%, transparent 99%, #000 100%);
+}
+/* The arch is now just a white line along the banner's curved bottom edge. */
+.arch-line { position: absolute; bottom: 0; left: -2px; right: -2px; height: 60px; pointer-events: none; }
+.arch-line svg { width: 100%; height: 100%; display: block; }
+.arch-logo {
+  cursor: pointer; user-select: none;
+  display: inline-flex; align-items: baseline;
+  font-family: "Sora", sans-serif; font-weight: 700;
+  font-size: 30px; line-height: 1; letter-spacing: -0.03em;
+  margin-left: 44px;                /* clear the top-left launcher button */
+  color: #fff;
+}
+.arch-logo span:nth-child(2) { font-weight: 800; font-style: italic; }
+.arch-curve {                       /* the curved bottom edge */
+  position: absolute;
+  bottom: 0;
+  left: -2px;                       /* bleed past the edges so no brand-color sliver shows at the corners */
+  right: -2px;
+  height: 60px;
+  overflow: hidden;
+}
+.arch-curve svg { width: 100%; height: 100%; display: block; }
+/* Big page title, between the banner and the Suggest button */
+.page-title { text-align: center; margin: 28px 0 36px; }
+.page-title .title-stack { cursor: pointer; }
 
 /* ===== Suggest button + cards ===== */
 .suggest-section { margin: 48px 0; text-align: center; }
@@ -246,29 +293,56 @@ header {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
-  margin-top: 28px;
-  align-items: stretch;
+  margin: 32px 0 0;      /* small gap down to the tiles */
+  min-height: calc(92vh - 460px);  /* table sits near the bottom — first line peeks (accounts for the header above) */
+  align-content: start;  /* keep the row natural-height so the reveal animation doesn't stretch the cards */
+  align-items: stretch;  /* all 3 tiles share the same height */
 }
+/* Empty slots shown until "Suggest 3 Chores" fills them in. */
+.card-placeholder {
+  background: rgba(38, 42, 53, 0.35);
+  border: 1px dashed var(--line-strong);
+  box-shadow: none;
+  min-height: 150px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  animation: phPulse 2.4s ease-in-out infinite;
+}
+.card-placeholder .ph-dot {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 2px dashed var(--ink-faded);
+}
+.card-placeholder span {
+  font-family: "Sora", sans-serif;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink-faded);
+}
+@keyframes phPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.85; } }
 
 @media (max-width: 780px) {
-  .cards { grid-template-columns: 1fr; }
+  /* Stack the (small) chore cards; reserved gap sized so all 3 fit without extra scroll. */
+  /* Big gap on phones so the table sits at the bottom (just its first line peeks on a Pixel 7). */
+  .cards { grid-template-columns: 1fr; gap: 10px; min-height: calc(92vh - 360px); }
 }
 
 .card {
   background: var(--bg-card);
   border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 22px;
+  border-radius: 12px;
+  padding: 9px 11px;
+  min-height: 110px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 5px;
   box-shadow: var(--shadow);
   text-align: left;
-  animation: cardEnter 0.45s ease backwards;
+  animation: cardEnter 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; /* bouncy "land" */
 }
 
 @keyframes cardEnter {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(-48px); }   /* fall down out of the button */
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -283,7 +357,7 @@ header {
 .card-name {
   font-family: "Sora", sans-serif;
   font-weight: 400;
-  font-size: 19px;
+  font-size: 13px;
   line-height: 1.2;
   letter-spacing: -0.015em;
   color: var(--ink);
@@ -292,10 +366,10 @@ header {
 .card-meta {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 13px;
+  gap: 3px;
+  font-size: 11px;
   color: var(--ink-soft);
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .card-meta-row { display: flex; gap: 10px; align-items: flex-start; }
@@ -312,13 +386,13 @@ header {
 
 .card-done-btn {
   margin-top: auto;
-  padding: 11px;
+  padding: 6px 8px;
   background: transparent;
   color: var(--azul);
   border: 1.5px solid var(--azul);
-  border-radius: 10px;
+  border-radius: 8px;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   letter-spacing: 0.04em;
@@ -540,7 +614,7 @@ tr:hover td { background: var(--bg-card-hover); }
 
 .toast-undo:hover { background: var(--azul); border-color: var(--azul); color: #fff; }
 
-.cards:empty { display: none; }
+/* (Empty gap is held by .cards min-height above.) */
 
 /* ===== Confetti ===== */
 .confetti-particle {
@@ -645,26 +719,22 @@ tr:hover td { background: var(--bg-card-hover); }
 
 /* ===== Sign-out chip ===== */
 .signout-chip {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  z-index: 120;
+  /* Circle icon button in normal flow at the bottom of the page (not fixed). */
+  margin: 8px auto 44px;
+  width: 44px; height: 44px;
   background: rgba(38, 42, 53, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   color: var(--ink-soft);
-  font-family: "Sora", sans-serif;
-  font-size: 11px;
-  font-weight: 500;
-  padding: 8px 12px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: 50%;
   cursor: pointer;
   display: none;
+  align-items: center;
+  justify-content: center;
   transition: all 0.15s;
 }
+.signout-chip svg { width: 18px; height: 18px; }
 .signout-chip:hover { color: var(--ink); border-color: var(--line-strong); }
-.signout-chip[data-active="1"] { display: inline-flex; }
+.signout-chip[data-active="1"] { display: flex; }
 </style>
 </head>
 <body>
@@ -683,21 +753,17 @@ tr:hover td { background: var(--bg-card-hover); }
 <a class="return-pill" id="returnPill" href="#">← back to homebase</a>
 
 <!-- Sign-out chip (shown when signed in) -->
-<button class="signout-chip" id="signoutChip" onclick="cleaningAuth.signOut()">sign out</button>
+<!-- sign-out button moved to the bottom of the container -->
 
-<!-- Banner -->
-<div class="banner">
-  <img class="banner-img" src="kitchen.webp" alt="" aria-hidden="true">
-  <div class="banner-fade-sides"></div>
-  <div class="banner-fade"></div>
-</div>
+<!-- Arch banner header: transparent, with just a white line along the curved bottom edge -->
+<header class="arch-banner"></header>
 
 <div class="container">
-  <header>
-    <h1 class="title-stack">
+  <div class="page-title">
+    <h1 class="title-stack" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
       <span>Tyd</span><span>ee</span>
     </h1>
-  </header>
+  </div>
 
   <section class="suggest-section">
     <div class="suggest-group">
@@ -714,6 +780,10 @@ tr:hover td { background: var(--bg-card-hover); }
   <section class="table-section">
     <div class="table-wrap" id="tableWrap"></div>
   </section>
+
+  <button class="signout-chip" id="signoutChip" onclick="cleaningAuth.signOut()" aria-label="Sign out" title="Sign out">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+  </button>
 </div>
 
 <div class="toast" id="toast">
@@ -981,11 +1051,12 @@ tr:hover td { background: var(--bg-card-hover); }
   // ====== RENDER: CARDS ======
   function renderCards(picks) {
     const el = document.getElementById('cards');
+    const prevH = el.offsetHeight;
     el.innerHTML = '';
     picks.forEach((c, i) => {
       const card = document.createElement('div');
       card.className = 'card';
-      card.style.animationDelay = `${i * 0.08}s`;
+      card.style.animationDelay = `${i * 0.22}s`;   /* waterfall: each tile falls after the last */
       card.innerHTML = `
         <div class="card-zone">${escapeHtml(c.zone)}</div>
         <div class="card-name">${escapeHtml(c.name)}</div>
@@ -998,6 +1069,24 @@ tr:hover td { background: var(--bg-card-hover); }
       `;
       el.appendChild(card);
     });
+    // Grow the container from its old height to the new content height so the table below
+    // slides down smoothly, while the tiles animate out (see @keyframes cardEnter).
+    const targetH = el.scrollHeight;
+    el.style.overflow = 'hidden';
+    el.style.height = prevH + 'px';
+    requestAnimationFrame(() => {
+      el.style.transition = 'height 0.8s cubic-bezier(0.2, 0.8, 0.25, 1)';
+      el.style.height = targetH + 'px';
+    });
+    let finished = false;
+    const reset = () => {
+      if (finished) return; finished = true;
+      el.style.transition = ''; el.style.height = ''; el.style.overflow = '';
+      el.removeEventListener('transitionend', onEnd);
+    };
+    const onEnd = (e) => { if (e.propertyName === 'height') reset(); };
+    el.addEventListener('transitionend', onEnd);
+    setTimeout(reset, 1200);
   }
 
   function escapeHtml(s) {
@@ -1263,7 +1352,7 @@ tr:hover td { background: var(--bg-card-hover); }
 </script>
 
 <!-- homebase launcher: top-left button + side panel listing all sibling apps.
-     Source: Home Base App\public\launcher.js -->
+     Source: Assistant App\public\launcher.js -->
 <script>
   (function () {
     var isLocal = /^(localhost|127\.0\.0\.1|192\.|10\.)/.test(location.hostname)
