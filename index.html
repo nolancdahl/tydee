@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tydee</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="manifest" href="/manifest.json" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<meta name="theme-color" content="#14161b" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="mobile-web-app-capable" content="yes" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -633,6 +639,24 @@ tr:hover td { background: var(--bg-card-hover); }
   100% { transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity: 0; }
 }
 
+/* +$0.25 reward flier — fires when a chore is marked done, flies from the Done button
+   to the top-left homebase launcher button (which represents the path to Ledger). */
+.tydee-reward-fly {
+  position: fixed; left: 0; top: 0; z-index: 9000;
+  pointer-events: none; white-space: nowrap;
+  font-family: 'Manrope', system-ui, sans-serif; font-weight: 800; font-size: 26px;
+  color: #2EB872; letter-spacing: -0.02em; line-height: 1;
+  text-shadow: 0 0 16px rgba(46, 184, 114, 0.55), 0 4px 12px rgba(0, 0, 0, 0.4);
+  animation: tydeeRewardFlyToCorner 1.2s cubic-bezier(0.45, 0, 0.25, 1) forwards;
+}
+@keyframes tydeeRewardFlyToCorner {
+  0%   { transform: translate(calc(var(--reward-start-x) - 50%), calc(var(--reward-start-y) - 50%)) scale(0.2);  opacity: 0; }
+  12%  { transform: translate(calc(var(--reward-start-x) - 50%), calc(var(--reward-start-y) - 50%)) scale(1.45); opacity: 1; }
+  28%  { transform: translate(calc(var(--reward-start-x) - 50%), calc(var(--reward-start-y) - 50%)) scale(1.0);  opacity: 1; }
+  88%  { transform: translate(calc(var(--reward-end-x)   - 50%), calc(var(--reward-end-y)   - 50%)) scale(0.55); opacity: 1; }
+  100% { transform: translate(calc(var(--reward-end-x)   - 50%), calc(var(--reward-end-y)   - 50%)) scale(0.2);  opacity: 0; }
+}
+
 /* ===== Login overlay ===== */
 .login-overlay {
   position: fixed;
@@ -796,7 +820,7 @@ tr:hover td { background: var(--bg-card-hover); }
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, getDoc, onSnapshot, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDumiv3QAFL_n4xnKRdTyJ1Kjg5HKY5D-0",
@@ -817,7 +841,7 @@ tr:hover td { background: var(--bg-card-hover); }
     signIn: () => signInWithPopup(auth, provider),
     signOut: () => signOut(auth),
     onAuthStateChanged,
-    doc, setDoc, getDoc, onSnapshot, serverTimestamp,
+    doc, setDoc, getDoc, onSnapshot, serverTimestamp, increment,
   };
   window.__resolveFirebase?.(window.cleaningFirebase);
 </script>
@@ -832,6 +856,7 @@ tr:hover td { background: var(--bg-card-hover); }
     { id: 'b3-mirror',         name: 'Wash mirror',                     zone: '3rd Bathroom',       floor: 3, mins: 5,  tools: 'Glass cleaner (2nd floor bathroom), microfiber (2nd floor bedroom)',                                                                          freq: 14 },
     { id: 'b3-trash',          name: 'Take out trash',                  zone: '3rd Bathroom',       floor: 3, mins: 5,  tools: 'Trash bag (1st floor kitchen)',                                                                                                                freq: 7  },
     { id: 'b3-toilet',         name: 'Clean toilet',                    zone: '3rd Bathroom',       floor: 3, mins: 5,  tools: 'Toilet cleaner (2nd floor bathroom), toilet brush (3rd floor bathroom), rag (2nd floor bedroom)',                                              freq: 7  },
+    { id: 'b3-toothpaste-tray',name: 'Clean toothpaste tray',           zone: '3rd Bathroom',       floor: 3, mins: 5,  tools: 'Dish soap (1st floor kitchen), hot water, microfiber cloth (2nd floor bedroom)',                                                              freq: 7  },
     { id: 'b3-soap-refill',    name: 'Refill hand soap',                zone: '3rd Bathroom',       floor: 3, mins: 5,  tools: 'Hand soap refill (2nd floor bathroom)',                                                                                                        freq: 30 },
     { id: 'b3-toiletry-stock', name: 'Take stock of toiletries',        zone: '3rd Bathroom',       floor: 3, mins: 5,  tools: 'None',                                                                                                                                        freq: 28 },
 
@@ -839,7 +864,7 @@ tr:hover td { background: var(--bg-card-hover); }
     { id: 'r3-water-bottles',  name: 'Clean water bottles',             zone: '3rd Bedroom',        floor: 3, mins: 10, tools: 'Bottle brush (3rd floor bathroom), dish soap (1st floor kitchen)',                                                                            freq: 14 },
     { id: 'r3-rag-soap',       name: 'Wipe down w/ rag & soap',         zone: '3rd Bedroom',        floor: 3, mins: 15, tools: 'Rag (2nd floor bedroom), dish soap (1st floor kitchen)',                                                                                       freq: 14 },
     { id: 'r3-vitamins',       name: 'Refill vitamins',                 zone: '3rd Bedroom',        floor: 3, mins: 5,  tools: 'Vitamin bottles (3rd floor bathroom), pill organizer (3rd floor bedroom)',                                                                    freq: 7  },
-    { id: 'r3-humidifier',     name: 'Clean humidifier',                zone: '3rd Bedroom',        floor: 3, mins: 15, tools: 'White vinegar (1st floor kitchen), brush (1st floor kitchen), rag (2nd floor bedroom)',                                                       freq: 14 },
+    { id: 'r3-humidifier',     name: 'Clean humidifier',                zone: '3rd Bedroom',        floor: 3, mins: 10, tools: 'Soap (1st floor kitchen), scrubber (1st floor kitchen)',                                                                                      freq: 30 },
     { id: 'r3-monitors',       name: 'Clean monitors + Surface screen', zone: '3rd Bedroom',        floor: 3, mins: 5,  tools: 'Screen cleaner (3rd floor office), microfiber (2nd floor bedroom)',                                                                           freq: 28 },
     { id: 'r3-computer-air',   name: 'Clean computer w/ compressed air',zone: '3rd Bedroom',        floor: 3, mins: 5,  tools: 'Compressed air can (3rd floor office)',                                                                                                       freq: 28 },
 
@@ -870,6 +895,7 @@ tr:hover td { background: var(--bg-card-hover); }
     { id: 'k1-stovetop',       name: 'Clean under stovetop',            zone: '1st Kitchen',        floor: 1, mins: 15, tools: 'Rag (2nd floor bedroom), degreaser (1st floor kitchen)',                                                                                       freq: 21 },
     { id: 'k1-microwave',      name: 'Clean microwave',                 zone: '1st Kitchen',        floor: 1, mins: 5,  tools: 'Rag (2nd floor bedroom), dish soap (1st floor kitchen), bowl of water',                                                                        freq: 14 },
     { id: 'k1-rag-soap',       name: 'Wipe down kitchen w/ rag & soap', zone: '1st Kitchen',        floor: 1, mins: 15, tools: 'Rag (2nd floor bedroom), dish soap (1st floor kitchen)',                                                                                       freq: 7  },
+    { id: 'k1-freezer-ice',    name: 'Chop up ice in the freezer',      zone: '1st Kitchen',        floor: 1, mins: 2,  tools: 'None',                                                                                                                                               freq: 14 },
 
     // 1st floor living room
     { id: 'l1-rag-soap',       name: 'Wipe down w/ rag & soap',         zone: '1st Living Room',    floor: 1, mins: 10, tools: 'Rag (2nd floor bedroom), dish soap (1st floor kitchen)',                                                                                       freq: 14 },
@@ -1233,6 +1259,24 @@ tr:hover td { background: var(--bg-card-hover); }
     }
   }
 
+  // ====== FUNNY MONEY BUMP ======
+  // +25¢ per completed chore, same shared doc as CYBYWY and Jeeves.
+  const FUNNY_TOTALS_DOC = 'sunrise_totals_v1';
+  async function bumpFunnyMoney(cents = 25) {
+    const uid = currentUser?.uid;
+    if (!uid || !fb) return;
+    try {
+      const ref = fb.doc(fb.db, 'users', uid, 'data', FUNNY_TOTALS_DOC);
+      await fb.setDoc(ref, {
+        value: {
+          lifetimeCents: fb.increment(cents),
+          lifetimeDone: fb.increment(cents > 0 ? 1 : -1),
+        },
+        updatedAt: fb.serverTimestamp(),
+      }, { merge: true });
+    } catch (e) { console.warn('bumpFunnyMoney failed:', e?.message || e); }
+  }
+
   // ====== MARK DONE + UNDO ======
   let undoData = null;
   let toastTimer = null;
@@ -1246,8 +1290,14 @@ tr:hover td { background: var(--bg-card-hover); }
     const clickedFromCard = ev && ev.currentTarget && ev.currentTarget.classList.contains('card-done-btn');
     if (clickedFromCard) confettiBurst(ev.currentTarget);
 
+    // Fire a +$0.25 flier from the Done button toward the top-left homebase launcher
+    // button — visually echoes CYBYWY's reward animation and points toward Ledger
+    // where the chore credit shows up in the Funny Money wallet.
+    if (ev && ev.currentTarget) flyReward(ev.currentTarget);
+
     undoData = { id, prev: state.lastDone[id] || null };
     state.lastDone[id] = new Date().toISOString();
+    bumpFunnyMoney(25);
     await saveState();
 
     const btn = document.querySelector(`.card-done-btn[data-id="${id}"]`);
@@ -1255,6 +1305,23 @@ tr:hover td { background: var(--bg-card-hover); }
 
     renderTable();
     showToast(`Logged: ${chore.name}`);
+  }
+
+  // Animate a "+$0.25" element from the clicked button to the top-left homebase
+  // launcher button (or, if the launcher isn't mounted yet, the top-left corner).
+  function flyReward(originEl) {
+    const start = originEl.getBoundingClientRect();
+    const launcher = document.querySelector('.hb-launch-btn');
+    const end = launcher ? launcher.getBoundingClientRect() : { left: 12, top: 12, width: 40, height: 40 };
+    const span = document.createElement('span');
+    span.className = 'tydee-reward-fly';
+    span.textContent = '+$0.25';
+    span.style.setProperty('--reward-start-x', `${start.left + start.width / 2}px`);
+    span.style.setProperty('--reward-start-y', `${start.top + start.height / 2}px`);
+    span.style.setProperty('--reward-end-x',   `${end.left   + end.width   / 2}px`);
+    span.style.setProperty('--reward-end-y',   `${end.top    + end.height  / 2}px`);
+    document.body.appendChild(span);
+    setTimeout(() => span.remove(), 1300);
   }
 
   function showToast(msg) {
@@ -1269,6 +1336,7 @@ tr:hover td { background: var(--bg-card-hover); }
     if (!undoData) return;
     if (undoData.prev === null) delete state.lastDone[undoData.id];
     else state.lastDone[undoData.id] = undoData.prev;
+    bumpFunnyMoney(-25);
     await saveState();
 
     const btn = document.querySelector(`.card-done-btn[data-id="${undoData.id}"]`);
@@ -1326,6 +1394,14 @@ tr:hover td { background: var(--bg-card-hover); }
 
     renderTable();
     subscribeToState();
+
+    // Re-fetch on visibility change (mobile kills WebSocket)
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible' && currentUser) {
+        await loadStateFromFirestore();
+        renderTable();
+      }
+    });
   }
 
   function bootSignedOut() {
@@ -1363,6 +1439,15 @@ tr:hover td { background: var(--bg-card-hover); }
     s.dataset.appKey = 'cleaning'
     document.body.appendChild(s)
   })()
+</script>
+
+<!-- Register the service worker so Chrome treats this as an installable PWA. -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js').catch(function () {})
+    })
+  }
 </script>
 </body>
 </html>
